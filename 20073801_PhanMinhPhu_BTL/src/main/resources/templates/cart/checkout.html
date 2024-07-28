@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/image/logo.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout</title>
+<style>
+.container-fluid {
+	margin: 120px 0 0 0;
+	max-width: 1000px;
+}
+</style>
+<link th:insert="~{common/taglib  :: taglib}">
+<body ng-app="shopping-cart-app" ng-controller="shopping-cart-ctrl">
+	<div th:insert="~{common/header :: header}"></div>
+
+	<div class="container-fluid">
+		<div class="row">
+			<div
+				class="row d-flex justify-content-center align-items-center h-100">
+				<h3 class="text-center">Nhập thông tin đơn hàng</h3>
+				<span class="text-center text-primary">[[${message}]]</span>
+				<form th:action="@{/order/checkout}" method="post">
+					<div class="mb-3">
+						<label for="exampleInputEmail1" class="form-label"> Tên
+							của bạn</label> <input type="text" class="form-control"
+							name="customerName" id="exampleInputEmail1"
+							aria-describedby="emailHelp" required>
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">Số
+							điện thoại</label> <input class="form-control" name="phone"
+							id="exampleInputPassword1 " required>
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">Địa
+							chỉ</label> <input class="form-control" name="address"
+							id="exampleInputPassword1" required>
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">
+							Email</label> <input class="form-control" type="email" name="email"
+							id="exampleInputPassword1" required>
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">Số
+							lượng</label> <input type="text" class="form-control" name="quantity"
+							id="exampleInputPassword1" value="{{cart.count}}" readonly>
+					</div>
+					<div class="mb-3">
+						<label for="exampleInputPassword1" class="form-label">Thành
+							tiền</label> <input type="text" class="form-control" name="amount"
+							id="exampleInputPassword1" value="{{cart.amount}}" readonly>
+					</div>
+					<button class="btn btn-primary">Xác nhận mua hàng</button>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div th:insert="~{common/footer :: footer}"></div>
+</body>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add: function(id) {
+            var itemIndex = this.items.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                var item = this.items[itemIndex];
+                item.qty++;
+                item.total = item.qty * item.productPrice;
+                this.saveToLocalStorage();
+            } else {
+                $http.get(`/product/${id}`).then(response => {
+                    response.data.qty = 1;
+                    response.data.total = response.data.qty * response.data.productPrice;
+                    this.items.push(response.data);
+                    this.saveToLocalStorage();
+                });
+            }
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+/*        updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            $scope.cart.saveToLocalStorage();
+        } */
+
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+</script>
+</html>

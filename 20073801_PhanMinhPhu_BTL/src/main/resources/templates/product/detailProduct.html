@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/image/logo.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${detailProduct.productName}"></title>
+<link th:insert="~{common/taglib  :: taglib}">
+<style>
+</style>
+</head>
+<body  ng-app="shopping-cart-app" ng-controller="shopping-cart-ctrl">
+	<div th:insert="~{common/header :: header}"></div>
+	<br>
+	<br>
+	<br>
+	<br>
+	<div class="container">
+		<div class="row">
+			<div class="container mt-4">
+				<div th:if="${detailProduct}">
+					<div class="row">
+						<div class="col-6">
+							<img th:src="@{|/image/${detailProduct.productImage}|}"
+								alt="Ảnh sản phẩm" class="img-thumbnail"
+								style="width: 595px; height: 595px">
+						</div>
+						<div class="col-6">
+							<p>
+								<span class="h5" th:text="${detailProduct.productName}"></span>
+								<br> <br> <span class="h6"
+									th:text="${detailProduct.productPrice}+'$'"></span> <br> <br>
+								<strong>Mô tả sản phẩm:</strong> <span
+									th:text="${detailProduct.productDescription}"></span>
+							</p>
+							<hr>
+							<a th:attr="ng-click=@{|cart.add(${detailProduct.productId})|} "
+								class=" btn btn-primary ">Thêm vào giỏ hàng</a>
+							<button class="btn btn-warning">Mua ngay</button>
+							<br> <br>
+							<div class="card-body">
+								<strong>TẠI SAO LẠI CHỌN GLASSYZONE?</strong> <br> <br>
+								<ul>
+									<li><strong>BẢO HÀNH</strong> gọng kính 12 tháng</li>
+									<li><strong>ĐỔI/TRẢ</strong> linh hoạt trong 03 ngày nếu
+										không hài lòng.</li>
+									<li><strong>MIỄN PHÍ</strong> vệ sinh, cân chỉnh, thay ve
+										mũi, thay ốc TRỌN ĐỜI SẢN PHẨM.</li>
+								</ul>
+							</div>
+							<br> <br>
+							<div class="row">
+								<a class="btn btn-primary text-center" th:href="@{/products}">Đây
+									không phải thứ bạn cần? Tìm sản phẩm khác! </a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div th:unless="${detailProduct}">
+					<div class="alert alert-danger" role="alert">Sản phẩm không
+						tồn tại hoặc đã bị xóa.</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<br>
+	<div th:insert="~{common/footer :: footer}"></div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"></script>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add: function(id) {
+            var itemIndex = this.items.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                var item = this.items[itemIndex];
+                item.qty++;
+                item.total = item.qty * item.productPrice;
+                this.saveToLocalStorage();
+            } else {
+                $http.get(`/product/${id}`).then(response => {
+                    response.data.qty = 1;
+                    response.data.total = response.data.qty * response.data.productPrice;
+                    this.items.push(response.data);
+                    this.saveToLocalStorage();
+                });
+            }
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage: function() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage: function() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+       updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            $scope.cart.saveToLocalStorage();
+        }
+
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+</script>
+</html>

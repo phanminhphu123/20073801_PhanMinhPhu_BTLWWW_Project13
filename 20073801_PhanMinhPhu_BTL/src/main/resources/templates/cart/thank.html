@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<head>
+<meta charset="utf-8">
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"></script>
+<link th:insert="~{common/taglib  :: taglib}">
+<title>Đặt hàng thành công</title>
+</head>
+
+<body>
+	<div th:insert="~{common/header :: header}"></div>
+	<br>
+	<br>
+	<section class="h-100" style="background-color: #eee;">
+		<div class="container h-100 py-5">
+			<h3 class="text-success text-center">Cảm ơn bạn đã đặt hàng! Đơn hàng của
+				bạn sẽ được giao ngay. <a href="/home">Quay lại trang chủ!</a></h3>
+		</div>
+		<div th:insert="~{common/footer :: footer}"></div>
+</body>
+</html>

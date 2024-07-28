@@ -1,0 +1,21 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<body th:fragment="feature">
+	<section class="py-5 mt-5">
+		<div class="container">
+			<h2 class="text-center">Sản phẩm nổi bật</h2>
+			<div class="col-lg-4 col-md-6 feature-product">
+				<div class="card mb-4 item" th:each="prod : ${product}">
+					<img th:src="@{|image/${prod.productImage}|}"
+						class="card-img-top" alt="img" >
+					<div class="card-body">
+						<h5 class="card-title">[[${prod.productName}]]</h5>
+						<p class="card-text">[[${prod.productDescription}]]</p>
+						<p></p>
+						<a th:href="@{|/products/${prod.productId}|}" class="btn btn-primary">View Details</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+</html>

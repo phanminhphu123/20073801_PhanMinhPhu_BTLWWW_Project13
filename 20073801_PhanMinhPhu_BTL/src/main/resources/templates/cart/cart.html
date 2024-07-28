@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns="http://www.thymeleaf.org">
+
+<head>
+<meta charset="utf-8">
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"></script>
+<link th:insert="~{common/taglib  :: taglib}">
+<title>Giỏ hàng</title>
+</head>
+
+<body ng-app="shopping-cart-app" ng-controller="shopping-cart-ctrl">
+	<div th:insert="~{common/header :: header}"></div>
+	<br>
+	<br>
+	<section class="h-100" style="background-color: #eee;">
+		<div class="container h-100 py-5">
+			<div
+				class="row d-flex justify-content-center align-items-center h-100">
+				<div class="col-10">
+
+					<div class="d-flex justify-content-between align-items-center mb-4">
+						<h3 class="fw-normal mb-0 text-black">Shopping Cart</h3>
+					</div>
+
+					<div class="card rounded-3 mb-4" ng-repeat="item in cart.items">
+						<div class="card-body p-4">
+							<div
+								class="row d-flex justify-content-between align-items-center">
+								<div class="col-md-2 col-lg-2 col-xl-2">
+									<img src="/image/{{item.productImage}}" width="150px"
+										height="150px" class="img-fluid rounded-3" alt="Mắt kính">
+								</div>
+								<div class="col-md-3 col-lg-3 col-xl-3">
+									<p class="lead fw-normal mb-2"></p>
+									<p>
+										<span>{{item.productName}} </span>
+									</p>
+								</div>
+								<div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+
+									<input ng-change="cart.saveToLocalStorage()"
+										ng-model="item.qty" min="1" max="5" type="number" />
+								</div>
+								<div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
+									<h5 class="mb-0">{{cart.amt_of(item) |number: 2}}</h5>
+								</div>
+								<div class="col-md-1 col-lg-1 col-xl-1 text-end">
+									<a href="#" ng-click="cart.remove(item.id)"
+										class="btn text-danger"><i class="fas fa-trash fa-lg"></i></a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card mb-4">
+						<div class="card-body p-4 d-flex flex-row">
+							<div class="form-outline flex-fill">
+								<h6 class="">Số lượng: {{cart.count}}</h6>
+								<h5 class="">Thành tiền: {{cart.amount | number:2}}$</h5>
+							</div>
+							<button type="button" class="btn btn-outline-warning btn-lg ms-3"
+								ng-click="cart.clear()">Xoá giỏ hàng</button>
+								<a type="button" href="/order/checkout" class="btn btn-outline-warning btn-lg ms-3"
+								>Tiến hành thanh toán</a >
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div th:insert="~{common/footer :: footer}"></div>
+</body>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add: function(id) {
+            var itemIndex = this.items.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                var item = this.items[itemIndex];
+                item.qty++;
+                item.total = item.qty * item.productPrice;
+            } else {
+                $http.get(`/product/${id}`).then(response => {
+                    response.data.qty = 1;
+                    response.data.total = response.data.qty * response.data.productPrice;
+                    this.items.push(response.data);
+                });
+            }
+            this.saveToLocalStorage();
+            $timeout(function() {
+                $scope.$apply();
+            });
+            
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+/*        updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            $scope.cart.saveToLocalStorage();
+        } */
+
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+</script>
+</html>

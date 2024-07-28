@@ -1,0 +1,61 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div class="header" th:fragment="header"  ng-app="shopping-cart-app" ng-controller="shopping-cart-ctrl">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light ">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/home}"><img src="/image/h120-GlassyZone_Logo-ngang.png" width="192px" height="38.79px"> </a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item ">
+                        <div class="dropdown">
+                            <button class="nav-link menu-hover">SẢN PHẨM</button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" th:href="@{/products}">TẤT
+										CẢ SẢN PHẨM</a></li>
+                                <li><a class="dropdown-item" href="#">GỌNG KÍNH</a></li>
+                                <li><a class="dropdown-item" href="#">KÍNH MÁT</a></li>
+                                <li><a class="dropdown-item" href="#">TRÒNG KÍNH</a></li>
+                                <li><a class="dropdown-item" href="#">PHỤ KIỆN</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link menu-hover" href="#">TIN
+							TỨC & SỰ KIỆN</a></li>
+                    <li class="nav-item "><a class="nav-link menu-hover" href="#">VỀ
+							CHÚNG TÔI &nbsp </a></li>
+                    <th:block th:if="${session.user == null}">
+                        <li class="nav-item mt-1">
+                            <div class="dropdown">
+                                <button class="nav-link menu-hover fa-solid fa-user"></button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" th:href="@{/login}">Đăng
+											nhập</a></li>
+                                    <li><a class="dropdown-item " th:href="@{/signup}">Đăng
+											ký</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </th:block>
+                    <th:block th:if="${session.user}">
+                        <li class="nav-item">
+                            <div class="dropdown">
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" th:href="@{/logout}" th:if="${session.user != null}">Đăng xuất</a></li>
+                                </ul>
+                                <p class="mt-2" style="font-size: 15px">
+                                    Xin chào, <span th:text="${session.user.name}" th:if="${session.user != null}"></span>!
+                                </p>
+                            </div>
+                        </li>
+                    </th:block>
+                </ul>
+
+                <form class="form-inline my-2 my-lg-0 ">
+                    <a class="btn menu-hover" th:href="@{|/cart|}"> <i class="fas fa-cart-shopping" style="font-size: 24px"></i></a>
+                </form>
+                <span class="badge bg-danger" style="margin: -25px 0 0 -11px">
+				</span>
+            </div>
+        </div>
+    </nav>
+</div>

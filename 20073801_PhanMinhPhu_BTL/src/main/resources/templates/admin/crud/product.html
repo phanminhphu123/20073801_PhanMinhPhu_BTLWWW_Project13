@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/image/logo.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product</title>
+<link th:insert="~{common/taglib  :: taglib}">
+<style>
+.row {
+	margin-top: 70px;
+	color: black;
+}
+</style>
+</head>
+<body>
+	<div th:insert="~{common/header :: header}"></div>
+
+	<div class="container-fluid">
+		<div class="row flex-nowrap">
+			<div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-light">
+				<div th:insert="~{admin/common/sidebar :: sidebar}"></div>
+			</div>
+			<div class="col-md-9 mt-0">
+				<p class="text-center text-danger col-12">[[${message}]]</p>
+				<form th:action="@{/admin/products}" method="post"
+					enctype="multipart/form-data" th:object="${product}"
+					class="row g-3">
+
+					<div class="col-md-6">
+						<label for="productName" class="form-label">Product Name:</label>
+						<input type="text" id="productName" name="productName"
+							th:field="*{productName}" class="form-control" />
+						<p th:if="${#fields.hasErrors('productName')}"
+							class="form-text text-danger">Không để trống tên</p>
+					</div>
+					<div class="col-md-6">
+						<label for="productPrice" class="form-label">Product
+							Price:</label> <input type="text" id="productPrice" name="productPrice"
+							th:field="*{productPrice}" class="form-control" />
+						<p th:if="${#fields.hasErrors('productName')}"
+							class="form-text text-danger">Không để trống giá</p>
+					</div>
+					<div class="col-md-6">
+						<label for="categoryId" class="form-label">Category:</label> <input
+							type="text" id="categoryName" name="categoryName"
+							th:field="*{categoryName}" class="form-control" />
+						<p th:if="${#fields.hasErrors('productName')}"
+							class="form-text text-danger">Không để trống mặt hàng</p>
+					</div>
+					<div class="col-12">
+						<label for="productDescription" class="form-label">Product
+							Description:</label>
+						<textarea id="productDescription" name="productDescription"
+							th:field="*{productDescription}" class="form-control"></textarea>
+
+					</div>
+					<div class="col-md-6">
+						<label for="productImage" class="form-label">Product
+							Image:</label> <input type="file" id="productImage" name="productImage"
+							th:field="*{productImage}" class="form-control" />
+					</div>
+
+					<br>
+					<div class="col-12">
+						<div class="text-center">
+							<button th:formaction="@{/admin/products/create}"
+								class="btn btn-primary" type="submit">Create</button>
+							<button th:formaction="@{|/admin/products/update/*{productId}|}"
+								class="btn btn-primary" type="submit">Update</button>
+							<button th:formaction="@{|/admin/products/remove/*{productId}|}"
+								class="btn btn-primary" type="submit">Delete</button>
+							<button th:formaction="@{/admin/products/reset}"
+								class="btn btn-primary" type="submit">Reset</button>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-12">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>Mã sản phẩm</th>
+										<th>Tên sản phẩm</th>
+										<th>Giá sản phẩm</th>
+										<th>Mô tả</th>
+										<th>Ảnh</th>
+										<th>Danh mục</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr th:each="p : ${products}">
+										<th>[[${p.productId}]]</th>
+										<td>[[${p.productName}]]</td>
+										<td>[[${p.productPrice}]]</td>
+										<td>[[${p.productDescription}]]</td>
+										<td><img 
+											th:src="@{'/image/' + ${p.productImage}}"
+											th:if="${p.productImage}" width="100px" height="100px">
+										</td>
+										<td>[[${p.categoryName}]]</td>
+										<td>
+											<form method="post">
+												<a th:href="@{'/admin/products/edit/' + ${p.productId}}"><i
+													class="fa fa-edit fa-2x"></i></a> <a
+													th:href="@{'/admin/products/remove/' + ${p.productId}}"><i
+													class="fa fa-trash fa-2x"></i></a>
+											</form>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+			</div>
+		</div>
+	</div>
+	<div th:insert="~{common/footer :: footer}"></div>
+</body>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add: function(id) {
+            var itemIndex = this.items.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                var item = this.items[itemIndex];
+                item.qty++;
+                item.total = item.qty * item.productPrice;
+                this.saveToLocalStorage();
+            } else {
+                $http.get(`/product/${id}`).then(response => {
+                    response.data.qty = 1;
+                    response.data.total = response.data.qty * response.data.productPrice;
+                    this.items.push(response.data);
+                    this.saveToLocalStorage();
+                });
+            }
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+/*        updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            $scope.cart.saveToLocalStorage();
+        } */
+
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+</script>
+</html>

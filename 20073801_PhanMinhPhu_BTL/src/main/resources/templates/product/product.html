@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/image/logo.png" type="image/x-icon">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Product</title>
+<link th:insert="~{common/taglib  :: taglib}">
+<style>
+.row {
+	max-width: 100%
+}
+</style>
+</head>
+
+<body ng-app="shopping-cart-app" ng-controller="shopping-cart-ctrl">
+	<div th:insert="~{common/header :: header}"></div>
+	<br>
+	<br>
+	<div class="container-fluid row">
+		<section class="py-5 mt-5 col-md-3 mr-4">
+			<h4 class="lead">Tìm kiếm</h4>
+			<form th:action="@{/products/search}" th:method="get">
+				<div class="input-group mb-3">
+					<input type="text" class="form-control" name="name"
+						placeholder="Bạn muốn tìm gì?" aria-label=""
+						aria-describedby="basic-addon1">
+					<div class="input-group-prepend">
+						<button class="btn btn-primary" type="submit"> <i class="fas fa-search"></i></button>
+					</div>
+				</div>
+			</form>
+			<h4 class="lead">Sắp xếp</h4>
+			<div class="dropdown">
+				<button class="btn btn-primary dropdown-toggle" type="button"
+					id="dropdownMenuButton1" data-bs-toggle="dropdown"
+					aria-expanded="false">Sắp xếp theo</button>
+				<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+					<li><a class="dropdown-item" th:href="@{|/products/sort/asc|}">Tăng
+							dần</a></li>
+					<li><a class="dropdown-item"
+						th:href="@{|/products/sort/desc|}">Giảm dần</a></li>
+				</ul>
+			</div>
+			<div class="mt-4">
+				<h4 class="lead">Danh mục</h4>
+				<ul class="list-group">
+					<li class="list-group-item">Gọng kính</li>
+					<li class="list-group-item">Tròng kính</li>
+					<li class="list-group-item">Kính mát</li>
+					<li class="list-group-item">Phụ kiện</li>
+				</ul>
+			</div>
+		</section>
+
+		<section class="py-5 mt-5 col-md-9">
+			<div class="container">
+				<div class="row">
+					<span class="text-center text-danger">[[${message}]]</span>
+					<div class="col-lg-4 col-md-6 " th:each="prod : ${products}">
+						<div class="card mb-4">
+							<img th:src="@{'/image/'+ ${prod.productImage}}" width="200px"
+								height="300px" class="card-img-top" alt="img">
+							<div class="card-body">
+								<h5 class="card-title">[[${prod.productName}]]</h5>
+								<span class="badge bg-success">[[${prod.productPrice}]]$</span>
+								<p class="card-text">[[${prod.productDescription}]]</p>
+								<a th:attr="ng-click=@{|cart.add(${prod.productId})|} "
+									class=" btn btn-primary ">Thêm vào giỏ hàng</a> <a
+									th:href="@{|/products/${prod.productId}|} "
+									class="btn btn-primary ">Xem chi tiết</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+	<br>
+	<div th:insert="~{common/footer :: footer} "></div>
+</body>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.2/angular.min.js"></script>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add(id) {
+            var item = this.items.find(item => item.id == id);
+            if (item) {
+                item.qty++;
+                this.saveToLocalStorage();
+            }
+            else {
+                $http.get(`/product/${id}`).then(resp => {
+                    resp.data.qty = 1;
+                    this.items.push(resp.data);
+                    this.saveToLocalStorage();
+                })
+            }
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage: function() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage: function() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+       updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            this.saveToLocalStorage();
+        }
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+
+</script>
+
+</html>

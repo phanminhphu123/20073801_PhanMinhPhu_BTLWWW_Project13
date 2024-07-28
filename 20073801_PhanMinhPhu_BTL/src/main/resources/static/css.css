@@ -1,0 +1,83 @@
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+    height: 69px;
+}
+
+.tag {
+    margin: -110px 10px 0 10px;
+    width: 340px;
+    height: 165px;
+    background-color: #ffffff;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 0.01mm solid black;
+    border-radius: 5px;
+    transition: transform 0.6s ease;
+}
+
+.tag:hover {
+    transform: translateY(-7px);
+    box-shadow: 0px 0px 15px rgba(206, 205, 205, 0.5);
+    opacity: 1.0;
+}
+
+.jumbotron {
+    z-index: 0;
+    position: relative;
+}
+
+.col-inner {
+    padding: 50px 0 0 0;
+    width: 1000px;
+    display: inline;
+}
+
+.dropdown:hover>.dropdown-menu {
+    display: block;
+}
+
+.menu-hover:hover {
+    color: #fd9849;
+}
+
+.page-footer {
+    text-decoration: none;
+    margin: 100px 0 0 0;
+}
+
+.feature-product {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.item {
+    flex: 1;
+    width: 300px;
+    height: 400px;
+    margin: 0 20px 0 20px;
+}
+
+.card-title {
+    height: 40px;
+    font-size: 1em;
+    overflow: hidden;
+}
+
+@media (min-width: 1025px) {
+    .h-custom {
+        height: 100vh !important;
+    }
+}
+
+
+/* .dropdown>.dropdown-toggle:active {
+    Without this, clicking will make it sticky
+    pointer-events: none;
+}
+ */

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category</title>
+<link th:insert="~{common/taglib  :: taglib}">
+<style>
+.row {
+	margin-top: 70px;
+	color: black;
+}
+</style>
+</head>
+<body>
+	<div th:insert="~{common/header :: header}"></div>
+
+	<div class="container-fluid">
+		<div class="row flex-nowrap">
+			<div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-light">
+				<div th:insert="~{admin/common/sidebar :: sidebar}"></div>
+			</div>
+			<div class="col-md-9 mt-0">
+				<div class="row">
+					<div class="col-md-12">
+						<table class="table">
+							<thead>
+								<tr>
+									<th scope="col">Mã danh mục</th>
+									<th scope="col">Tên danh mục</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="category : ${category}">
+									<th scope="row">[[${category.categoryId}]]</th>
+									<td>[[${category.categoryName}]]</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:insert="~{common/footer :: footer}"></div>
+</body>
+<script>
+const app = angular.module("shopping-cart-app", []);
+
+app.controller("shopping-cart-ctrl", function($scope, $rootScope, $http) {
+	 var cartCtrl = this;
+	$scope.cart = {
+        items: [],
+        add: function(id) {
+            var itemIndex = this.items.findIndex(item => item.id === id);
+
+            if (itemIndex !== -1) {
+                var item = this.items[itemIndex];
+                item.qty++;
+                item.total = item.qty * item.productPrice;
+                this.saveToLocalStorage();
+            } else {
+                $http.get(`/product/${id}`).then(response => {
+                    response.data.qty = 1;
+                    response.data.total = response.data.qty * response.data.productPrice;
+                    this.items.push(response.data);
+                    this.saveToLocalStorage();
+                });
+            }
+        },
+
+        remove: function(id) {
+            var index = this.items.findIndex(item => item.id == id);
+            if (index !== -1) {
+                this.items.splice(index, 1);
+                this.saveToLocalStorage();
+            }
+        },
+
+        clear: function() {
+            this.items = [];
+            this.saveToLocalStorage();
+        },
+
+        amt_of: function(item) {
+            return item.qty * item.productPrice;
+        },
+
+        get count() {
+            return this.items.map(item => item.qty).reduce((total, qty) => total + qty, 0);
+        },
+
+        get amount() {
+            return this.items
+                .map(item => item.qty * item.productPrice)
+                .reduce((total, qty) => total + qty, 0);
+        },
+
+        saveToLocalStorage() {
+            var json = JSON.stringify(angular.copy(this.items));
+            localStorage.setItem("cart", json);
+        },
+
+        loadFromLocalStorage() {
+            var json = localStorage.getItem("cart");
+            this.items = json ? JSON.parse(json) : [];
+        },
+        
+/*        updateCartItem: function(item) {
+            item.qty = parseInt(item.qty); // Đảm bảo qty là một số nguyên
+            item.total = item.qty * item.productPrice;
+            $scope.cart.saveToLocalStorage();
+        } */
+
+    };
+    $scope.cart.loadFromLocalStorage();
+});
+</script>
+</html>
